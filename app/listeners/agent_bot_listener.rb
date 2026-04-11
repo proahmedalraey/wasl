@@ -77,9 +77,12 @@ class AgentBotListener < BaseListener
   end
 
   def process_message_event(method_name, agent_bot, message, _event)
-    # Only webhook bots are supported
-    payload = message.webhook_data.merge(event: method_name)
-    process_webhook_bot_event(agent_bot, payload)
+    if agent_bot.webhook?
+      payload = message.webhook_data.merge(event: method_name)
+      process_webhook_bot_event(agent_bot, payload)
+    elsif agent_bot.native?
+      process_native_bot_event(agent_bot, message, method_name)
+    end
   end
 
   def process_webhook_bot_event(agent_bot, payload)
@@ -87,5 +90,9 @@ class AgentBotListener < BaseListener
 
     AgentBots::WebhookJob.perform_later(agent_bot.outgoing_url, payload, :agent_bot_webhook,
                                         secret: agent_bot.secret, delivery_id: SecureRandom.uuid)
+  end
+
+  def process_native_bot_event(agent_bot, message, event_name)
+    Chatbots::ProcessMessageJob.perform_later(agent_bot.id, message.id, event_name)
   end
 end

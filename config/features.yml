@@ -241,3 +241,6 @@
   display_name: Advanced Assignment
   enabled: false
   premium: true
+- name: native_chatbot_builder
+  display_name: Native Chatbot Builder
+  enabled: false

@@ -10,6 +10,7 @@ import BaseSettingsHeader from '../components/BaseSettingsHeader.vue';
 import Button from 'dashboard/components-next/button/Button.vue';
 import Avatar from 'dashboard/components-next/avatar/Avatar.vue';
 import AgentBotModal from './components/AgentBotModal.vue';
+import AgentBotBuilderModal from './components/AgentBotBuilderModal.vue';
 import Dialog from 'dashboard/components-next/dialog/Dialog.vue';
 import {
   BaseTable,
@@ -34,6 +35,7 @@ const loading = ref({});
 const modalType = ref(MODAL_TYPES.CREATE);
 const agentBotModalRef = ref(null);
 const agentBotDeleteDialogRef = ref(null);
+const agentBotBuilderModalRef = ref(null);
 
 const tableHeaders = computed(() => {
   return [
@@ -66,6 +68,11 @@ const openEditModal = bot => {
 const openDeletePopup = bot => {
   selectedBot.value = bot;
   agentBotDeleteDialogRef.value.open();
+};
+
+const openBuilderModal = bot => {
+  selectedBot.value = bot;
+  agentBotBuilderModalRef.value.open(bot);
 };
 
 const deleteAgentBot = async id => {
@@ -168,6 +175,15 @@ onMounted(() => {
               <BaseTableCell align="end" class="w-24">
                 <div class="flex gap-3 justify-end flex-shrink-0">
                   <Button
+                    v-if="bot.bot_type === 'native'"
+                    v-tooltip.top="t('AGENT_BOTS.BUILDER.OPEN')"
+                    icon="i-lucide-workflow"
+                    slate
+                    sm
+                    :is-loading="loading[bot.id]"
+                    @click="openBuilderModal(bot)"
+                  />
+                  <Button
                     v-if="!bot.system_bot"
                     v-tooltip.top="t('AGENT_BOTS.EDIT.BUTTON_TEXT')"
                     icon="i-woot-edit-pen"
@@ -199,6 +215,7 @@ onMounted(() => {
       :type="modalType"
       :selected-bot="selectedBot"
     />
+    <AgentBotBuilderModal ref="agentBotBuilderModalRef" />
 
     <Dialog
       ref="agentBotDeleteDialogRef"

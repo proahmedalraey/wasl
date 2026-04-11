@@ -36,8 +36,9 @@ class AgentBot < ApplicationRecord
                                     foreign_key: :assignee_agent_bot_id,
                                     dependent: :nullify,
                                     inverse_of: :assignee_agent_bot
+  has_one :chatbot_flow, dependent: :destroy_async
   belongs_to :account, optional: true
-  enum bot_type: { webhook: 0 }
+  enum bot_type: { webhook: 0, native: 1 }
 
   validates :outgoing_url, length: { maximum: Limits::URL_LENGTH_LIMIT }
 

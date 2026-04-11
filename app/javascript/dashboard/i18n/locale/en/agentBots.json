@@ -93,6 +93,9 @@
         "LABEL": "Description",
         "PLACEHOLDER": "What does this bot do?"
       },
+      "TYPE": {
+        "LABEL": "Bot type"
+      },
       "WEBHOOK_URL": {
         "LABEL": "Webhook URL",
         "PLACEHOLDER": "https://example.com/webhook",
@@ -110,8 +113,32 @@
     "WEBHOOK": {
       "DESCRIPTION": "Configure a webhook bot to integrate with your custom services. The bot will receive and process events from conversations and can respond to them."
     },
+    "BUILDER": {
+      "OPEN": "Open builder",
+      "TITLE": "Flow Builder · {name}",
+      "FLOW_NAME": "Flow name",
+      "FLOW_NAME_PLACEHOLDER": "Enter flow name",
+      "FLOW_DESCRIPTION": "Flow description",
+      "FLOW_DESCRIPTION_PLACEHOLDER": "Describe this flow",
+      "DEFINITION": "Flow JSON definition",
+      "DEFINITION_PLACEHOLDER": "Paste your flow JSON definition",
+      "VALIDATION_ERRORS": "Validation errors",
+      "VALIDATE": "Validate",
+      "SAVE_DRAFT": "Save draft",
+      "PUBLISH": "Publish",
+      "INVALID_JSON": "Flow JSON is invalid",
+      "LOAD_ERROR": "Unable to load flow data",
+      "SAVE_SUCCESS": "Flow draft saved",
+      "SAVE_ERROR": "Unable to save draft",
+      "VALIDATE_SUCCESS": "Flow validation passed",
+      "VALIDATE_ERROR": "Flow validation failed",
+      "PUBLISH_SUCCESS": "Flow published as version {version}",
+      "PUBLISH_SUCCESS_GENERIC": "Flow published",
+      "PUBLISH_ERROR": "Unable to publish flow"
+    },
     "TYPES": {
-      "WEBHOOK": "Webhook bot"
+      "WEBHOOK": "Webhook bot",
+      "NATIVE": "Native bot"
     }
   }
 }

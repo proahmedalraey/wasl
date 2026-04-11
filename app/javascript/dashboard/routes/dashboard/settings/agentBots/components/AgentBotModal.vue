@@ -3,7 +3,7 @@ import { ref, computed, reactive, watch } from 'vue';
 import { useStore, useMapGetter } from 'dashboard/composables/store';
 import { useAlert } from 'dashboard/composables';
 import { useI18n } from 'vue-i18n';
-import { required, helpers, url } from '@vuelidate/validators';
+import { required, helpers, url, requiredIf } from '@vuelidate/validators';
 import { useVuelidate } from '@vuelidate/core';
 import { copyTextToClipboard } from 'shared/helpers/clipboard';
 import { useToggle } from '@vueuse/core';
@@ -14,6 +14,7 @@ import Input from 'dashboard/components-next/input/Input.vue';
 import TextArea from 'dashboard/components-next/textarea/TextArea.vue';
 import Avatar from 'dashboard/components-next/avatar/Avatar.vue';
 import AccessToken from 'dashboard/routes/dashboard/settings/profile/AccessToken.vue';
+import SelectInput from 'dashboard/components-next/select/Select.vue';
 
 const props = defineProps({
   type: {
@@ -43,6 +44,7 @@ const formState = reactive({
   botUrl: '',
   botAvatar: null,
   botAvatarUrl: '',
+  botType: 'webhook',
 });
 
 const [showAccessToken, toggleAccessToken] = useToggle();
@@ -60,11 +62,11 @@ const v$ = useVuelidate(
     botUrl: {
       required: helpers.withMessage(
         () => t('AGENT_BOTS.FORM.ERRORS.URL'),
-        required
+        requiredIf(() => formState.botType === 'webhook')
       ),
       url: helpers.withMessage(
         () => t('AGENT_BOTS.FORM.ERRORS.VALID_URL'),
-        url
+        value => formState.botType !== 'webhook' || url.$validator(value)
       ),
     },
   },
@@ -122,6 +124,7 @@ const resetForm = () => {
     botUrl: '',
     botAvatar: null,
     botAvatarUrl: '',
+    botType: 'webhook',
   });
   v$.value.$reset();
 };
@@ -159,7 +162,7 @@ const handleSubmit = async () => {
     name: formState.botName,
     description: formState.botDescription,
     outgoing_url: formState.botUrl,
-    bot_type: 'webhook',
+    bot_type: formState.botType,
     avatar: formState.botAvatar,
   };
 
@@ -218,12 +221,14 @@ const initializeForm = () => {
       outgoing_url: botUrl,
       thumbnail,
       bot_config: botConfig,
+      bot_type: botType,
       access_token: botAccessToken,
       secret: botSecretValue,
     } = props.selectedBot;
     formState.botName = name || '';
     formState.botDescription = description || '';
     formState.botUrl = botUrl || botConfig?.webhook_url || '';
+    formState.botType = botType || 'webhook';
     formState.botAvatarUrl = thumbnail || '';
 
     if (props.type === MODAL_TYPES.EDIT) {
@@ -335,7 +340,17 @@ defineExpose({ dialogRef });
           :placeholder="$t('AGENT_BOTS.FORM.DESCRIPTION.PLACEHOLDER')"
         />
 
+        <SelectInput
+          v-model="formState.botType"
+          :label="$t('AGENT_BOTS.FORM.TYPE.LABEL')"
+          :options="[
+            { value: 'webhook', label: $t('AGENT_BOTS.TYPES.WEBHOOK') },
+            { value: 'native', label: $t('AGENT_BOTS.TYPES.NATIVE') },
+          ]"
+        />
+
         <Input
+          v-if="formState.botType === 'webhook'"
           id="bot-url"
           v-model="formState.botUrl"
           :label="$t('AGENT_BOTS.FORM.WEBHOOK_URL.LABEL')"

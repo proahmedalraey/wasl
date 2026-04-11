@@ -1,0 +1,100 @@
+class Api::V1::Accounts::AgentBots::FlowsController < Api::V1::Accounts::BaseController
+  before_action :current_account
+  before_action :check_authorization
+  before_action :agent_bot
+  before_action :ensure_native_bot
+  before_action :ensure_feature_enabled
+
+  def show
+    flow = chatbot_flow
+    render json: serialized_flow(flow)
+  end
+
+  def update
+    flow = chatbot_flow
+    definition = flow_definition_param
+
+    flow.update!(
+      draft_definition: definition,
+      name: params[:name].presence || flow.name,
+      description: params[:description].presence || flow.description,
+      updated_by_id: Current.user&.id
+    )
+
+    render json: serialized_flow(flow)
+  end
+
+  def validate
+    validation_result = Chatbots::Flows::Validator.new(definition: flow_definition_param).perform
+    render json: { valid: validation_result.valid?, errors: validation_result.errors }
+  end
+
+  def publish
+    flow = chatbot_flow
+    validation_result = Chatbots::Flows::Validator.new(definition: flow.draft_definition).perform
+    return render json: { valid: false, errors: validation_result.errors }, status: :unprocessable_entity unless validation_result.valid?
+
+    version = Chatbots::Flows::Publisher.new(chatbot_flow: flow, actor: Current.user).perform
+    render json: serialized_flow(flow.reload).merge(published_version: serialized_version(version))
+  end
+
+  private
+
+  def agent_bot
+    @agent_bot ||= Current.account.agent_bots.find(params[:agent_bot_id])
+  end
+
+  def ensure_native_bot
+    return if @agent_bot.native?
+
+    render json: { error: 'Flow builder is available only for native bot type' }, status: :unprocessable_entity
+  end
+
+  def ensure_feature_enabled
+    return if Current.account.feature_enabled?('native_chatbot_builder')
+
+    render json: { error: 'Feature not enabled' }, status: :forbidden
+  end
+
+  def chatbot_flow
+    @chatbot_flow ||= @agent_bot.chatbot_flow || @agent_bot.create_chatbot_flow!(
+      account_id: @agent_bot.account_id,
+      name: "#{@agent_bot.name} Flow",
+      status: :draft,
+      created_by_id: Current.user&.id,
+      updated_by_id: Current.user&.id
+    )
+  end
+
+  def flow_definition_param
+    params[:definition].is_a?(Hash) ? params[:definition] : {}
+  end
+
+  def serialized_flow(flow)
+    {
+      id: flow.id,
+      name: flow.name,
+      description: flow.description,
+      status: flow.status,
+      draft_definition: flow.draft_definition,
+      published_version: serialized_version(flow.published_version),
+      updated_at: flow.updated_at
+    }
+  end
+
+  def serialized_version(version)
+    return nil if version.blank?
+
+    {
+      id: version.id,
+      version: version.version,
+      checksum: version.checksum,
+      published_at: version.published_at,
+      definition: version.definition
+    }
+  end
+
+  def check_authorization
+    authorize(AgentBot)
+  end
+end

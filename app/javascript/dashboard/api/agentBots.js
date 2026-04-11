@@ -29,6 +29,22 @@ class AgentBotsAPI extends ApiClient {
   resetSecret(botId) {
     return axios.post(`${this.url}/${botId}/reset_secret`);
   }
+
+  getFlow(botId) {
+    return axios.get(`${this.url}/${botId}/flow`);
+  }
+
+  updateFlowDraft(botId, payload) {
+    return axios.put(`${this.url}/${botId}/flow`, payload);
+  }
+
+  validateFlow(botId, payload) {
+    return axios.post(`${this.url}/${botId}/flow/validate`, payload);
+  }
+
+  publishFlow(botId) {
+    return axios.post(`${this.url}/${botId}/flow/publish`);
+  }
 }
 
 export default new AgentBotsAPI();

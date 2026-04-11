@@ -91,6 +91,10 @@ Rails.application.routes.draw do
             delete :avatar, on: :member
             post :reset_access_token, on: :member
             post :reset_secret, on: :member
+            resource :flow, only: [:show, :update], controller: 'agent_bots/flows' do
+              post :validate, on: :collection
+              post :publish, on: :collection
+            end
           end
           resources :contact_inboxes, only: [] do
             collection do
