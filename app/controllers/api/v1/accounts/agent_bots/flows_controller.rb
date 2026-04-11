@@ -13,6 +13,8 @@ class Api::V1::Accounts::AgentBots::FlowsController < Api::V1::Accounts::BaseCon
   def update
     flow = chatbot_flow
     definition = flow_definition_param
+    validation_result = Chatbots::Flows::Validator.new(definition: definition).perform
+    return render json: { valid: false, errors: validation_result.errors }, status: :unprocessable_entity unless validation_result.valid?
 
     flow.update!(
       draft_definition: definition,
@@ -21,7 +23,7 @@ class Api::V1::Accounts::AgentBots::FlowsController < Api::V1::Accounts::BaseCon
       updated_by_id: Current.user&.id
     )
 
-    render json: serialized_flow(flow)
+    render json: serialized_flow(flow).merge(valid: true)
   end
 
   def validate

@@ -53,6 +53,11 @@ const parseDefinition = () => {
   }
 };
 
+const extractBackendErrors = error => {
+  const errors = error?.response?.data?.errors;
+  return Array.isArray(errors) ? errors : [];
+};
+
 const loadFlow = async botId => {
   loading.value = true;
   try {
@@ -78,6 +83,7 @@ const open = selectedBot => {
 const saveDraft = async () => {
   const definition = parseDefinition();
   if (!definition) {
+    validationErrors.value = [t('AGENT_BOTS.BUILDER.INVALID_JSON')];
     useAlert(t('AGENT_BOTS.BUILDER.INVALID_JSON'));
     return;
   }
@@ -89,8 +95,13 @@ const saveDraft = async () => {
       description: flowDescription.value,
       definition,
     });
+    validationErrors.value = [];
     useAlert(t('AGENT_BOTS.BUILDER.SAVE_SUCCESS'));
   } catch (error) {
+    validationErrors.value = extractBackendErrors(error);
+    const firstError = validationErrors.value[0];
+    useAlert(firstError || t('AGENT_BOTS.BUILDER.SAVE_ERROR'));
+    if (firstError) return;
     useAlert(t('AGENT_BOTS.BUILDER.SAVE_ERROR'));
   } finally {
     loading.value = false;
@@ -100,6 +111,7 @@ const saveDraft = async () => {
 const validateDraft = async () => {
   const definition = parseDefinition();
   if (!definition) {
+    validationErrors.value = [t('AGENT_BOTS.BUILDER.INVALID_JSON')];
     useAlert(t('AGENT_BOTS.BUILDER.INVALID_JSON'));
     return;
   }
@@ -111,10 +123,11 @@ const validateDraft = async () => {
     if (data.valid) {
       useAlert(t('AGENT_BOTS.BUILDER.VALIDATE_SUCCESS'));
     } else {
-      useAlert(t('AGENT_BOTS.BUILDER.VALIDATE_ERROR'));
+      useAlert(validationErrors.value[0] || t('AGENT_BOTS.BUILDER.VALIDATE_ERROR'));
     }
   } catch (error) {
-    useAlert(t('AGENT_BOTS.BUILDER.VALIDATE_ERROR'));
+    validationErrors.value = extractBackendErrors(error);
+    useAlert(validationErrors.value[0] || t('AGENT_BOTS.BUILDER.VALIDATE_ERROR'));
   } finally {
     loading.value = false;
   }
@@ -131,8 +144,8 @@ const publishDraft = async () => {
       useAlert(t('AGENT_BOTS.BUILDER.PUBLISH_SUCCESS_GENERIC'));
     }
   } catch (error) {
-    validationErrors.value = error?.response?.data?.errors || [];
-    useAlert(t('AGENT_BOTS.BUILDER.PUBLISH_ERROR'));
+    validationErrors.value = extractBackendErrors(error);
+    useAlert(validationErrors.value[0] || t('AGENT_BOTS.BUILDER.PUBLISH_ERROR'));
   } finally {
     loading.value = false;
   }
