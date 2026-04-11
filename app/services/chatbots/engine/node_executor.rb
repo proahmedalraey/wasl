@@ -1,5 +1,5 @@
 class Chatbots::Engine::NodeExecutor
-  TERMINAL_TYPES = %w[end handoff resolve].freeze
+  MAX_EXECUTION_STEPS = 20
 
   pattr_initialize [:agent_bot!, :session!, :message!]
 
@@ -8,7 +8,7 @@ class Chatbots::Engine::NodeExecutor
     capture_waiting_input! if awaiting_input?
 
     safety_counter = 0
-    while session.active? && session.current_node_id.present? && safety_counter < 20
+    while session.active? && session.current_node_id.present? && safety_counter < MAX_EXECUTION_STEPS
       safety_counter += 1
       node = node_by_id(definition, session.current_node_id)
       break if node.blank?

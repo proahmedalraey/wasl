@@ -2,6 +2,7 @@
 import { ref, computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useAlert } from 'dashboard/composables';
+import { useBranding } from 'shared/composables/useBranding';
 import AgentBotsAPI from 'dashboard/api/agentBots';
 
 import Dialog from 'dashboard/components-next/dialog/Dialog.vue';
@@ -10,6 +11,7 @@ import TextArea from 'dashboard/components-next/textarea/TextArea.vue';
 import Button from 'dashboard/components-next/button/Button.vue';
 
 const { t } = useI18n();
+const { replaceInstallationName } = useBranding();
 const dialogRef = ref(null);
 const loading = ref(false);
 const bot = ref(null);
@@ -32,7 +34,7 @@ const defaultDefinition = () => ({
     {
       id: 'welcome',
       type: 'send_message',
-      data: { text: 'Welcome to Wasl.' },
+      data: { text: replaceInstallationName('Welcome to Chatwoot.') },
       position: { x: 320, y: 80 },
     },
     { id: 'end', type: 'end', data: {}, position: { x: 540, y: 80 } },
