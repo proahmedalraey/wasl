@@ -23,6 +23,18 @@ class AgentBotPolicy < ApplicationPolicy
     @account_user.administrator?
   end
 
+  def validate?
+    update?
+  end
+
+  def publish?
+    update?
+  end
+
+  def flow?
+    show?
+  end
+
   def reset_access_token?
     @account_user.administrator?
   end

@@ -53,9 +53,14 @@ class Api::V1::Accounts::AgentBots::FlowsController < Api::V1::Accounts::BaseCon
   end
 
   def ensure_feature_enabled
-    return if Current.account.feature_enabled?('native_chatbot_builder')
+    return if native_chatbot_builder_enabled?
 
-    render json: { error: 'Feature not enabled' }, status: :forbidden
+    render json: {
+      error: 'Feature not enabled',
+      feature: 'native_chatbot_builder',
+      account_feature_enabled: Current.account.feature_enabled?('native_chatbot_builder'),
+      globally_enabled: native_chatbot_builder_globally_enabled?
+    }, status: :forbidden
   end
 
   def chatbot_flow
@@ -97,6 +102,26 @@ class Api::V1::Accounts::AgentBots::FlowsController < Api::V1::Accounts::BaseCon
   end
 
   def check_authorization
-    authorize(AgentBot)
+    authorize(AgentBot, policy_action)
+  end
+
+  def policy_action
+    case action_name
+    when 'show' then :show?
+    when 'update' then :update?
+    when 'validate' then :validate?
+    when 'publish' then :publish?
+    else "#{action_name}?".to_sym
+    end
+  end
+
+  def native_chatbot_builder_enabled?
+    Current.account.feature_enabled?('native_chatbot_builder') || native_chatbot_builder_globally_enabled?
+  end
+
+  def native_chatbot_builder_globally_enabled?
+    Featurable::FEATURE_LIST.any? do |feature|
+      feature['name'] == 'native_chatbot_builder' && feature['enabled'] == true
+    end
   end
 end
