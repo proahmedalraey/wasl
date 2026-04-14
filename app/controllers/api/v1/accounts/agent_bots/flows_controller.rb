@@ -1,7 +1,7 @@
 class Api::V1::Accounts::AgentBots::FlowsController < Api::V1::Accounts::BaseController
   before_action :current_account
-  before_action :check_authorization
   before_action :agent_bot
+  before_action :check_authorization
   before_action :ensure_native_bot
   before_action :ensure_feature_enabled
 
@@ -102,7 +102,7 @@ class Api::V1::Accounts::AgentBots::FlowsController < Api::V1::Accounts::BaseCon
   end
 
   def check_authorization
-    authorize(AgentBot, policy_action)
+    authorize(@agent_bot, policy_action)
   end
 
   def policy_action
