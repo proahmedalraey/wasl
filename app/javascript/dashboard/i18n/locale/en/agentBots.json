@@ -120,9 +120,16 @@
       "FLOW_NAME_PLACEHOLDER": "Enter flow name",
       "FLOW_DESCRIPTION": "Flow description",
       "FLOW_DESCRIPTION_PLACEHOLDER": "Describe this flow",
-      "DEFINITION": "Flow JSON definition",
-      "DEFINITION_PLACEHOLDER": "Paste your flow JSON definition",
       "VALIDATION_ERRORS": "Validation errors",
+      "TOOLBAR_TITLE": "Node toolbar",
+      "TOOLBAR_HELP": "Drag nodes onto the canvas and connect them to build a flow.",
+      "AUTO_LAYOUT": "Auto-layout",
+      "SELECTED_NODE": "Selected node",
+      "MESSAGE_TEXT": "Message text",
+      "PROMPT_TEXT": "Prompt text",
+      "VARIABLE_KEY": "Variable key",
+      "DEFAULT_SEND_MESSAGE_TEXT": "Send a message",
+      "DEFAULT_ASK_INPUT_PROMPT": "Ask a question",
       "VALIDATE": "Validate",
       "SAVE_DRAFT": "Save draft",
       "PUBLISH": "Publish",
@@ -134,7 +141,13 @@
       "VALIDATE_ERROR": "Flow validation failed",
       "PUBLISH_SUCCESS": "Flow published as version {version}",
       "PUBLISH_SUCCESS_GENERIC": "Flow published",
-      "PUBLISH_ERROR": "Unable to publish flow"
+      "PUBLISH_ERROR": "Unable to publish flow",
+      "NODE_TYPES": {
+        "START": "Start",
+        "SEND_MESSAGE": "Send Message",
+        "ASK_INPUT": "Ask Input",
+        "END": "End"
+      }
     },
     "TYPES": {
       "WEBHOOK": "Webhook bot",

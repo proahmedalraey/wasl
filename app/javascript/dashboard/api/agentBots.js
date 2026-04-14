@@ -42,8 +42,8 @@ class AgentBotsAPI extends ApiClient {
     return axios.post(`${this.url}/${botId}/flow/validate`, payload);
   }
 
-  publishFlow(botId) {
-    return axios.post(`${this.url}/${botId}/flow/publish`);
+  publishFlow(botId, payload = {}) {
+    return axios.post(`${this.url}/${botId}/flow/publish`, payload);
   }
 }
 
