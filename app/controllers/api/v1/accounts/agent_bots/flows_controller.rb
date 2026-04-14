@@ -33,9 +33,11 @@ class Api::V1::Accounts::AgentBots::FlowsController < Api::V1::Accounts::BaseCon
 
   def publish
     flow = chatbot_flow
-    validation_result = Chatbots::Flows::Validator.new(definition: flow.draft_definition).perform
+    definition = effective_publish_definition(flow)
+    validation_result = Chatbots::Flows::Validator.new(definition: definition).perform
     return render json: { valid: false, errors: validation_result.errors }, status: :unprocessable_entity unless validation_result.valid?
 
+    persist_publish_definition!(flow, definition) if publish_definition_param_present?
     version = Chatbots::Flows::Publisher.new(chatbot_flow: flow, actor: Current.user).perform
     render json: serialized_flow(flow.reload).merge(published_version: serialized_version(version))
   end
@@ -79,6 +81,21 @@ class Api::V1::Accounts::AgentBots::FlowsController < Api::V1::Accounts::BaseCon
     return definition if definition.is_a?(Hash)
 
     {}
+  end
+
+  def publish_definition_param_present?
+    params.key?(:definition) || params.key?('definition')
+  end
+
+  def effective_publish_definition(flow)
+    publish_definition_param_present? ? flow_definition_param : flow.draft_definition
+  end
+
+  def persist_publish_definition!(flow, definition)
+    flow.update!(
+      draft_definition: definition,
+      updated_by_id: Current.user&.id
+    )
   end
 
   def serialized_flow(flow)
