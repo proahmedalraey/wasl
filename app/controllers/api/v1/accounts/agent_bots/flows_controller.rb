@@ -74,7 +74,11 @@ class Api::V1::Accounts::AgentBots::FlowsController < Api::V1::Accounts::BaseCon
   end
 
   def flow_definition_param
-    params[:definition].is_a?(Hash) ? params[:definition] : {}
+    definition = params[:definition]
+    return definition.to_unsafe_h if definition.is_a?(ActionController::Parameters)
+    return definition if definition.is_a?(Hash)
+
+    {}
   end
 
   def serialized_flow(flow)

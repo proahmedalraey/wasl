@@ -46,9 +46,9 @@ class Chatbots::Flows::Validator
     errors << 'Definition must be a JSON object' unless definition.is_a?(Hash)
     errors << 'Nodes must be an array' unless nodes.is_a?(Array)
     errors << 'Edges must be an array' unless edges.is_a?(Array)
-    errors << 'meta must be an object when provided' if definition.key?('meta') && !definition['meta'].is_a?(Hash)
-    errors << 'triggers must be an array when provided' if definition.key?('triggers') && !definition['triggers'].is_a?(Array)
-    if definition.key?('variables_schema') && !definition['variables_schema'].is_a?(Hash)
+    errors << 'meta must be an object when provided' if definition_has_key?('meta') && !definition_value('meta').is_a?(Hash)
+    errors << 'triggers must be an array when provided' if definition_has_key?('triggers') && !definition_value('triggers').is_a?(Array)
+    if definition_has_key?('variables_schema') && !definition_value('variables_schema').is_a?(Hash)
       errors << 'variables_schema must be an object when provided'
     end
   end
@@ -153,7 +153,21 @@ class Chatbots::Flows::Validator
   end
 
   def validate_start_node
-    errors << 'Flow must have exactly one start node' unless start_nodes.length == 1
+    if start_nodes.length > 1
+      errors << "Flow must have exactly one start node (found #{start_nodes.length})"
+      return
+    end
+
+    if start_nodes.blank?
+      errors << 'Flow must have exactly one start node'
+      malformed_start_nodes.each { |message| errors << message }
+      return
+    end
+
+    start_id = start_node_id
+    return if start_id.is_a?(String) && start_id.present?
+
+    errors << 'Start node found but invalid due to missing/invalid id'
   end
 
   def validate_orphan_nodes
@@ -203,15 +217,15 @@ class Chatbots::Flows::Validator
   end
 
   def nodes
-    @nodes ||= definition['nodes'] || []
+    @nodes ||= definition_value('nodes') || []
   end
 
   def edges
-    @edges ||= definition['edges'] || []
+    @edges ||= definition_value('edges') || []
   end
 
   def start_nodes
-    @start_nodes ||= nodes.select { |node| node_type(node) == 'start' }
+    @start_nodes ||= nodes.select { |node| normalized_node_type(node) == 'start' }
   end
 
   def start_node_id
@@ -220,6 +234,11 @@ class Chatbots::Flows::Validator
 
   def node_type(node)
     node['type'] || node[:type]
+  end
+
+  def normalized_node_type(node)
+    value = node_type(node)
+    value.is_a?(String) ? value.strip : value
   end
 
   def node_ids
@@ -254,5 +273,25 @@ class Chatbots::Flows::Validator
   def node_label(index, node)
     node_id = node['id'] || node[:id]
     node_id.present? ? "'#{node_id}'" : index + 1
+  end
+
+  def malformed_start_nodes
+    nodes.each_with_index.filter_map do |node, index|
+      next unless node.is_a?(Hash)
+
+      raw_type = node['type'] || node[:type]
+      next unless raw_type.to_s.strip.casecmp('start').zero?
+      next if raw_type.is_a?(String) && raw_type == 'start'
+
+      "Node #{node_label(index, node)} looks like a start node but has invalid type #{raw_type.inspect}; expected \"start\""
+    end
+  end
+
+  def definition_value(key)
+    definition[key] || definition[key.to_sym]
+  end
+
+  def definition_has_key?(key)
+    definition.key?(key) || definition.key?(key.to_sym)
   end
 end
