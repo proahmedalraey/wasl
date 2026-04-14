@@ -214,8 +214,6 @@ const saveDraft = async () => {
     validationErrors.value = extractBackendErrors(error);
     const firstError = validationErrors.value[0];
     useAlert(firstError || t('AGENT_BOTS.BUILDER.SAVE_ERROR'));
-    if (firstError) return;
-    useAlert(t('AGENT_BOTS.BUILDER.SAVE_ERROR'));
   } finally {
     loading.value = false;
   }
